@@ -453,7 +453,7 @@ function downloadCertificate() {
         score: `${results.percentage}%`,
         status: "APROBADO",
         issueDate: new Date().toISOString(),
-        verificationUrl: `https://canaric.github.io/evaluacion-escugen/verify?id=${certificateId}`
+        verificationUrl: `https://canaric.github.io/cyberevaluacion/verify?id=${certificateId}`
     });
     
     const qrCodeContainer = document.createElement("div");
