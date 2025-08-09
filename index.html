@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lf-l58rAAAAAPVDAonbUWWir1wkyvjbmD0ijNnB"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberEvaluación - Evaluación de Seguridad de la Información</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <!-- Efecto de partículas -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Sección de bienvenida -->
+    <section id="welcomeSection" class="section fade-in-up">
+        <div class="container">
+            <!-- Header con logos -->
+            <div class="header">
+                <div class="logo-container">
+                    <div class="logo">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                </div>
+                <h1 class="main-title">CyberEvaluación</h1>
+                <p class="subtitle">Seminario "El lado oculto de la Seguridad de la Información"</p>
+                <p class="subtitle">Instituto Universitario de Gendarmería Nacional Argentina</p>
+            </div>
+
+            <!-- Grid de información -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="info-title">Evaluación de Conocimientos</h3>
+                    <p class="info-description">Pon a prueba tus conocimientos sobre seguridad de la información adquiridos durante el seminario</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="info-title">Duración</h3>
+                    <p class="info-description">45 minutos máximo para completar la evaluación</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3 class="info-title">Preguntas</h3>
+                    <p class="info-description">25 preguntas aleatorias del banco de conocimientos</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h3 class="info-title">Certificado</h3>
+                    <p class="info-description">Disponible al aprobar con calificación mínima</p>
+                </div>
+            </div>
+
+            <!-- Formulario de información del participante -->
+            <div class="form-container">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: var(--cyber-accent);">
+                    <i class="fas fa-user-shield"></i> Información del Participante
+                </h2>
+                
+                <div class="form-group">
+                    <label for="studentName" class="form-label">
+                        <i class="fas fa-user"></i> Nombre y Apellido *
+                    </label>
+                    <input type="text" id="studentName" class="form-input" 
+                           placeholder="Ingrese su nombre completo como aparece en su documento" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="studentId" class="form-label">
+                        <i class="fas fa-id-card"></i> DNI *
+                    </label>
+                    <input type="text" id="studentId" class="form-input" 
+                           placeholder="Ingrese su DNI sin puntos ni espacios" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="userType" class="form-label">
+                        <i class="fas fa-users"></i> Tipo de Usuario *
+                    </label>
+                    <select id="userType" class="form-select" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="estudiante">Estudiante</option>
+                        <option value="docente">Docente</option>
+                        <option value="administrativo">Personal Administrativo</option>
+                        <option value="externo">Participante Externo</option>
+                    </select>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button id="startExam" class="btn-primary">
+                        <i class="fas fa-play"></i> Comenzar Evaluación
+                    </button>
+                    <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Al hacer clic iniciará la evaluación con tiempo limitado
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección del examen -->
+    <section id="examSection" class="exam-section">
+        <div class="container">
+            <div class="exam-header">
+                <div>
+                    <h2 style="color: var(--cyber-warning);">
+                        <i class="fas fa-laptop-code"></i> Evaluación en Progreso
+                    </h2>
+                    <div class="progress-bar" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="25">
+                        <div id="progressFill" class="progress-fill" style="width: 4%;"></div>
+                    </div>
+                    <p id="progressText" style="color: var(--text-secondary); margin-top: 0.5rem;">Pregunta 1 de 25</p>
+                </div>
+                <div class="timer" id="timer">45:00</div>
+            </div>
+
+            <div id="questionContainer" class="question-container">
+                <!-- Las preguntas se cargarán dinámicamente aquí -->
+            </div>
+
+            <div class="exam-navigation">
+                <button id="prevBtn" class="btn-nav" disabled>
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <button id="nextBtn" class="btn-nav">
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </button>
+                <button id="submitBtn" class="btn-primary" style="display: none;">
+                    <i class="fas fa-check"></i> Finalizar Examen
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de resultados -->
+    <section id="resultsSection" class="results-section">
+        <div class="container">
+            <div class="result-header">
+                <div id="resultIcon" class="result-icon">
+                    <i class="fas fa-check-circle success"></i>
+                </div>
+                <h2 id="resultTitle" class="result-title">¡Felicitaciones! Examen Aprobado</h2>
+                <p id="resultMessage" style="color: var(--text-secondary); font-size: 1.1rem;">
+                    Ha demostrado un buen conocimiento en seguridad de la información.
+                </p>
+            </div>
+
+            <div class="score-container">
+                <div class="score-circle">
+                    <div class="score-text" id="scorePercentage">85%</div>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon success">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="info-title">Estado del Examen</h3>
+                    <p id="examStatus" class="info-description success">Aprobado</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="info-title">Respuestas Correctas</h3>
+                    <p id="correctAnswers" class="info-description">21/25</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-stopwatch"></i>
+                    </div>
+                    <h3 class="info-title">Tiempo Utilizado</h3>
+                    <p id="timeUsed" class="info-description">32:15</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="info-title">Fecha de Finalización</h3>
+                    <p id="completionDate" class="info-description">8 de agosto de 2025</p>
+                </div>
+            </div>
+
+            <div id="recommendations" style="margin: 2rem 0; padding: 1.5rem; background: rgba(0, 255, 65, 0.1); border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 15px;">
+                <!-- Las recomendaciones se generarán dinámicamente -->
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;">
+                <button id="reviewBtn" class="btn-nav">
+                    <i class="fas fa-eye"></i> Revisar Respuestas
+                </button>
+                <button id="retryBtn" class="btn-nav">
+                    <i class="fas fa-redo"></i> Reintentar Examen
+                </button>
+                <button id="certificateBtn" class="btn-primary">
+                    <i class="fas fa-download"></i> Descargar Certificado
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de revisión -->
+    <section id="reviewSection" class="section" style="display: none;">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="color: var(--cyber-secondary);">
+                    <i class="fas fa-search"></i> Revisión de Respuestas
+                </h2>
+                <button id="backToResults" class="btn-nav">
+                    <i class="fas fa-arrow-left"></i> Volver a Resultados
+                </button>
+            </div>
+            <div id="reviewContainer">
+                <!-- Las respuestas revisadas se cargarán aquí -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="questions.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Crear efecto de partículas
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Inicializar efectos al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Agregar clase de animación a las secciones
+            const sections = document.querySelectorAll('.section, .info-card');
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.classList.add('fade-in-up');
+                }, index * 100);
+            });
+        });
+
+        // Efecto de escritura para el título
+        function typeWriter(element, text, speed = 100) {
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        // Aplicar efecto de escritura al título principal
+        window.addEventListener('load', function() {
+            const title = document.querySelector('.main-title');
+            const originalText = title.textContent;
+            typeWriter(title, originalText, 150);
+        });
+    </script>
+</body>
+</html>
+
