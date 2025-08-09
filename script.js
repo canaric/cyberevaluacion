@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function() {
             e.preventDefault();  // Evita que el botón haga su acción por defecto
             grecaptcha.enterprise.ready(async () => {
                 // Ejecuta el reCAPTCHA y obtiene el token
-                const token = await grecaptcha.enterprise.execute('6Lf-l58rAAAAAPVDAonbUWWir1wkyvjbmD0ijNnB', {action: 'LOGIN'});
+                const token = await grecaptcha.enterprise.execute('6LeZs58rAAAAAEpSjc9w-iyenjJiTMlTQK6ALB3-', {action: 'LOGIN'});
                 
                 // Aquí puedes enviar el token al servidor para validarlo
                 sessionStorage.setItem('recaptchaToken', token);
