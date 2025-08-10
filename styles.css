@@ -799,3 +799,50 @@ body::after {
 @keyframes retroBlink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
 .retro-sep.blink { animation: retroBlink 1s steps(2, jump-none) infinite; }
 .retro-digit { transition: text-shadow .2s ease; }
+
+
+/* Alternating blink for separators */
+@keyframes retroBlinkA { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@keyframes retroBlinkB { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+.retro-sep.blinkA { animation: retroBlinkA 1s steps(2, jump-none) infinite; }
+.retro-sep.blinkB { animation: retroBlinkB 1s steps(2, jump-none) infinite; }
+
+/* Mini glow pulse when digits change */
+@keyframes digitPulse {
+  0% { text-shadow: 0 0 8px rgba(66,229,255,.6), 0 0 16px rgba(255,183,77,.35), 0 0 28px rgba(255,183,77,.2); }
+  50% { text-shadow: 0 0 12px rgba(66,229,255,.9), 0 0 22px rgba(255,183,77,.6), 0 0 36px rgba(255,183,77,.35); }
+  100% { text-shadow: 0 0 8px rgba(66,229,255,.6), 0 0 16px rgba(255,183,77,.35), 0 0 28px rgba(255,183,77,.2); }
+}
+.retro-digit.pulse { animation: digitPulse 0.5s ease; }
+
+
+/* === Night mode & Alert states for retro banner === */
+.retro-banner.night{
+  background: linear-gradient(180deg, rgba(8,14,22,0.85), rgba(8,14,22,0.6));
+  border-color: rgba(120,200,255,0.22);
+  box-shadow: 0 6px 22px rgba(90,170,255,0.14), inset 0 0 26px rgba(120,200,255,0.10);
+}
+.retro-banner.night .retro-label{
+  background: linear-gradient(90deg,#7fd0ff,#a7ffe4,#bfe2ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 0 14px rgba(120,200,255,0.30);
+}
+.retro-banner.night .retro-date{ color:#cfeaff; text-shadow: 0 0 10px rgba(120,200,255,0.30); }
+.retro-banner.night .retro-seg{
+  background: radial-gradient(120% 120% at 50% 40%, rgba(120,200,255,.18), rgba(120,200,255,.06) 60%);
+  border-color: rgba(120,200,255,.30);
+  box-shadow: 0 0 0 2px rgba(120,200,255,.06) inset, 0 8px 20px rgba(120,200,255,.15);
+}
+.retro-banner.night .retro-digit{
+  color:#bfeaff;
+  text-shadow:
+    0 0 8px rgba(120,200,255,.75),
+    0 0 16px rgba(120,200,255,.55),
+    0 0 28px rgba(120,200,255,.35);
+  filter: drop-shadow(0 0 18px rgba(120,200,255,.20));
+}
+
+/* Alert (menos de 24h) */
+.retro-banner.alert{ border-color: rgba(255, 110, 110, 0.55); box-shadow: 0 0 0 1px rgba(255,110,110,0.25) inset, 0 8px 24px rgba(255,90,90,0.18); }
+.retro-banner.alert .retro-seg{ border-color: rgba(255,110,110,.35); }
+.retro-banner.alert .retro-sep{ color:#ffb0b0; filter: drop-shadow(0 0 8px rgba(255,110,110,.35)); }

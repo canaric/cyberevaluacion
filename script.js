@@ -702,8 +702,11 @@ function getRandomQuestions(num) {
 
 
 
+
+
 // === Deadline & Countdown (retro) ===
 (function(){
+  const retro = document.getElementById('retroDeadline');
   const deadline = new Date('2025-08-22T00:00:00-03:00');
   function fmtDate(d){
     try {
@@ -716,6 +719,39 @@ function getRandomQuestions(num) {
   if (dd2) dd2.textContent = fmtDate(deadline);
 
   function pad(n){ return String(n).padStart(2,'0'); }
+
+  // helper to update a digit with pulse when value changes
+  function setDigit(el, val){
+    if (!el) return;
+    const newVal = pad(val);
+    if (el.textContent !== newVal){
+      el.textContent = newVal;
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+      el.addEventListener('animationend', () => el.classList.remove('pulse'), { once: true });
+    }
+  }
+
+  function applyDayNight(now){
+    if (!retro) return;
+    const hr = now.getHours();
+    const night = (hr >= 20 || hr < 6);
+    retro.classList.toggle('night', night);
+  }
+
+  function applyAlert(totalSeconds){
+    if (!retro) return;
+    const isAlert = totalSeconds < 24*3600; // menos de 24h
+    retro.classList.toggle('alert', isAlert);
+    // Cambiar separadores a punto medio si queda menos de 24h
+    const seps = retro.querySelectorAll('.retro-countdown .retro-sep');
+    seps.forEach(el => {
+      el.textContent = isAlert ? '·' : ':';
+      el.classList.toggle('alert', isAlert);
+    });
+  }
+
   function tick(){
     const now = new Date();
     let diff = deadline - now;
@@ -726,34 +762,23 @@ function getRandomQuestions(num) {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    const legacy = [['cdDays','cdHours','cdMinutes']];
-    const retro  = [['retroDays','retroHours','retroMinutes','retroSeconds']];
+    // Day/Night toggle
+    applyDayNight(now);
+
+    // Alert separators & styles
+    applyAlert(totalSeconds);
 
     // Legacy update (sin segundos)
-    for (const [dId,hId,mId] of legacy){
-      const dEl = document.getElementById(dId);
-      const hEl = document.getElementById(hId);
-      const mEl = document.getElementById(mId);
-      if (dEl && hEl && mEl){
-        dEl.textContent = pad(days);
-        hEl.textContent = pad(hours);
-        mEl.textContent = pad(minutes);
-      }
-    }
+    setDigit(document.getElementById('cdDays'), days);
+    setDigit(document.getElementById('cdHours'), hours);
+    setDigit(document.getElementById('cdMinutes'), minutes);
+
     // Retro update (con segundos)
-    for (const [dId,hId,mId,sId] of retro){
-      const dEl = document.getElementById(dId);
-      const hEl = document.getElementById(hId);
-      const mEl = document.getElementById(mId);
-      const sEl = document.getElementById(sId);
-      if (dEl && hEl && mEl && sEl){
-        dEl.textContent = pad(days);
-        hEl.textContent = pad(hours);
-        mEl.textContent = pad(minutes);
-        sEl.textContent = pad(seconds);
-      }
-    }
+    setDigit(document.getElementById('retroDays'), days);
+    setDigit(document.getElementById('retroHours'), hours);
+    setDigit(document.getElementById('retroMinutes'), minutes);
+    setDigit(document.getElementById('retroSeconds'), seconds);
   }
   tick();
-  setInterval(tick, 1000); // ahora cada segundo para mostrar "SEG"
+  setInterval(tick, 1000);
 })();
