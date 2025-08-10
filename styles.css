@@ -171,7 +171,7 @@ body::after {
 
 .subtitle{
   display: block;
-  width: 50%;                 /* ocupa todo el ancho del panel */
+  width: 100%;                 /* ocupa todo el ancho del panel */
   text-align: center;
   color: var(--text-secondary);/* mismo color que ya tenés */
   font-weight: 800;            /* negrita */
