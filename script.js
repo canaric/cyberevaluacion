@@ -233,22 +233,8 @@ function submitExam() {
     
     // Guardar resultados
     sessionStorage.setItem("examResults", JSON.stringify(results));
-
-    // Enviar resultados al backend para registrar en CSV (GitHub)
-    try {
-        fetch("/api/logResult", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name: results.userName,
-                dni: results.userId,
-                score: results.percentage,
-                status: results.passed ? "APROBADO" : "DESAPROBADO",
-                date: new Date().toISOString()
-            })
-        }).catch(() => {});
-    } catch (e) { /* noop */ }
-// Mostrar resultados
+    
+    // Mostrar resultados
     displayResults(results);
 }
 
@@ -337,48 +323,6 @@ function displayResults(results) {
     if (recommendationsElement) {
         generateRecommendations(results);
     }
-
-    // === Botón de Exportar CSV local (protegido por contraseña) ===
-    try {
-        const resultsActions = document.getElementById("resultsActions") || document.getElementById("resultsSection") || document.body;
-        let exportBtn = document.getElementById("exportCsvLocalBtn");
-        if (!exportBtn) {
-            exportBtn = document.createElement("button");
-            exportBtn.id = "exportCsvLocalBtn";
-            exportBtn.textContent = "Exportar CSV (local)";
-            exportBtn.className = "btn btn-secondary";
-            exportBtn.style.marginLeft = "8px";
-            resultsActions.appendChild(exportBtn);
-        }
-        exportBtn.onclick = function() {
-            const pwd = prompt("Ingrese la contraseña para exportar el CSV:");
-            if (pwd !== "LadoOscuroSI") {
-                alert("Contraseña incorrecta.");
-                return;
-            }
-            // Generar CSV con el resultado actual
-            const header = "fecha_iso,nombre_apellido,dni,nota_porcentaje,estado\n";
-            const line = [
-                new Date().toISOString(),
-                (results.userName || "").replace(/\r?\n/g, " ").trim(),
-                results.userId || "",
-                results.percentage,
-                results.passed ? "APROBADO" : "DESAPROBADO"
-            ].join(",") + "\n";
-            const csv = header + line;
-
-            const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "resultados_local.csv";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        };
-    } catch (e) { /* noop */ }
-
 }
 
 function generateRecommendations(results) {
@@ -756,47 +700,60 @@ function getRandomQuestions(num) {
 }
 
 
-document.addEventListener("DOMContentLoaded", function() {
-    const studentIdInput = document.getElementById("studentId");
-    if (studentIdInput) {
-        studentIdInput.addEventListener("input", function(e) {
-            let value = e.target.value.replace(/\D/g, "");
-            if (value.length > 2) value = value.slice(0, 2) + "." + value.slice(2);
-            if (value.length > 6) value = value.slice(0, 6) + "." + value.slice(6, 9);
-            e.target.value = value;
-        });
-    }
-});
 
 
-
-// === Deadline & Countdown ===
+// === Deadline & Countdown (retro) ===
 (function(){
-  // Fecha límite: 22/08/2025 00:00 (hora de Argentina, -03:00)
   const deadline = new Date('2025-08-22T00:00:00-03:00');
-  const dd = document.getElementById('deadlineDate');
-  if (dd) {
-    const d = new Intl.DateTimeFormat('es-AR', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Argentina/Buenos_Aires' }).format(deadline);
-    dd.textContent = d.replace(',', '');
+  function fmtDate(d){
+    try {
+      return new Intl.DateTimeFormat('es-AR', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Argentina/Buenos_Aires' }).format(d).replace(',', '');
+    } catch(_){ return '22 de agosto de 2025, 00:00'; }
   }
+  const dd1 = document.getElementById('deadlineDate'); // legacy
+  const dd2 = document.getElementById('retroDeadlineDate'); // retro
+  if (dd1) dd1.textContent = fmtDate(deadline);
+  if (dd2) dd2.textContent = fmtDate(deadline);
+
   function pad(n){ return String(n).padStart(2,'0'); }
   function tick(){
     const now = new Date();
     let diff = deadline - now;
     if (diff < 0) diff = 0;
-    const mins = Math.floor(diff/60000);
-    const days = Math.floor(mins / (60*24));
-    const hours = Math.floor((mins - days*24*60)/60);
-    const minutes = mins % 60;
-    const elD = document.getElementById('cdDays');
-    const elH = document.getElementById('cdHours');
-    const elM = document.getElementById('cdMinutes');
-    if (elD && elH && elM){
-        elD.textContent = pad(days);
-        elH.textContent = pad(hours);
-        elM.textContent = pad(minutes);
+    const totalSeconds = Math.floor(diff / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const legacy = [['cdDays','cdHours','cdMinutes']];
+    const retro  = [['retroDays','retroHours','retroMinutes','retroSeconds']];
+
+    // Legacy update (sin segundos)
+    for (const [dId,hId,mId] of legacy){
+      const dEl = document.getElementById(dId);
+      const hEl = document.getElementById(hId);
+      const mEl = document.getElementById(mId);
+      if (dEl && hEl && mEl){
+        dEl.textContent = pad(days);
+        hEl.textContent = pad(hours);
+        mEl.textContent = pad(minutes);
+      }
+    }
+    // Retro update (con segundos)
+    for (const [dId,hId,mId,sId] of retro){
+      const dEl = document.getElementById(dId);
+      const hEl = document.getElementById(hId);
+      const mEl = document.getElementById(mId);
+      const sEl = document.getElementById(sId);
+      if (dEl && hEl && mEl && sEl){
+        dEl.textContent = pad(days);
+        hEl.textContent = pad(hours);
+        mEl.textContent = pad(minutes);
+        sEl.textContent = pad(seconds);
+      }
     }
   }
   tick();
-  setInterval(tick, 30000); // cada 30s suficiente (solo días/horas/minutos)
+  setInterval(tick, 1000); // ahora cada segundo para mostrar "SEG"
 })();
