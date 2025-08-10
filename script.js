@@ -59,39 +59,51 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function iniciarExamen() {
     // Validar información del usuario
-    const name = document.getElementById("studentName").value.trim();
+    const rawName = document.getElementById("studentName").value.trim();
     const id = document.getElementById("studentId").value.trim();
     const userType = document.getElementById("userType").value;
-    
-    if (!name || !id || !userType) {
-        alert("Por favor, complete toda la información requerida antes de comenzar.");
+
+    // Validación de nombre: solo letras (incluye acentos y ñ) y espacios
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(rawName)) {
+        alert("El nombre solo debe contener letras y espacios.");
         return;
     }
-    
-    // Guardar información del usuario
-    sessionStorage.setItem("userName", name);
+
+    // Formateo: Primera letra en mayúscula para cada palabra
+    const formattedName = rawName
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+
+    // Validación de DNI: NN.NNN.NNN
+    if (!/^\d{2}\.\d{3}\.\d{3}$/.test(id)) {
+        alert("El DNI debe estar en el formato NN.NNN.NNN (solo números y puntos).");
+        return;
+    }
+
+    // Validación de tipo de usuario
+    if (!userType) {
+        alert("Por favor, seleccione el tipo de usuario.");
+        return;
+    }
+
+    // Guardar información del usuario ya formateada
+    sessionStorage.setItem("userName", formattedName);
     sessionStorage.setItem("userId", id);
     sessionStorage.setItem("userType", userType);
-    
+
     // Obtener preguntas aleatorias
     currentQuestions.length = 0;
     currentQuestions.push(...getRandomQuestions(25));
     userAnswers.length = 0;
     userAnswers.push(...new Array(currentQuestions.length).fill(null));
-    currentQuestionIndex = 0;
-    
-    // Inicializar examen
-    examStartTime = new Date();
-    timeRemaining = timeLimit;
-    
-    // Cambiar a la sección del examen
-    welcomeSection.style.display = "none";
-    examSection.style.display = "block";
-    
-    // Mostrar primera pregunta
-    displayQuestion();
-    startTimer();
-    updateProgress();
+
+    // Mostrar sección de preguntas
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("questionSection").style.display = "block";
+    showQuestion(0);
 }
 
 function displayQuestion() {
@@ -221,8 +233,22 @@ function submitExam() {
     
     // Guardar resultados
     sessionStorage.setItem("examResults", JSON.stringify(results));
-    
-    // Mostrar resultados
+
+    // Enviar resultados al backend para registrar en CSV (GitHub)
+    try {
+        fetch("/api/logResult", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: results.userName,
+                dni: results.userId,
+                score: results.percentage,
+                status: results.passed ? "APROBADO" : "DESAPROBADO",
+                date: new Date().toISOString()
+            })
+        }).catch(() => {});
+    } catch (e) { /* noop */ }
+// Mostrar resultados
     displayResults(results);
 }
 
@@ -311,6 +337,48 @@ function displayResults(results) {
     if (recommendationsElement) {
         generateRecommendations(results);
     }
+
+    // === Botón de Exportar CSV local (protegido por contraseña) ===
+    try {
+        const resultsActions = document.getElementById("resultsActions") || document.getElementById("resultsSection") || document.body;
+        let exportBtn = document.getElementById("exportCsvLocalBtn");
+        if (!exportBtn) {
+            exportBtn = document.createElement("button");
+            exportBtn.id = "exportCsvLocalBtn";
+            exportBtn.textContent = "Exportar CSV (local)";
+            exportBtn.className = "btn btn-secondary";
+            exportBtn.style.marginLeft = "8px";
+            resultsActions.appendChild(exportBtn);
+        }
+        exportBtn.onclick = function() {
+            const pwd = prompt("Ingrese la contraseña para exportar el CSV:");
+            if (pwd !== "LadoOscuroSI") {
+                alert("Contraseña incorrecta.");
+                return;
+            }
+            // Generar CSV con el resultado actual
+            const header = "fecha_iso,nombre_apellido,dni,nota_porcentaje,estado\n";
+            const line = [
+                new Date().toISOString(),
+                (results.userName || "").replace(/\r?\n/g, " ").trim(),
+                results.userId || "",
+                results.percentage,
+                results.passed ? "APROBADO" : "DESAPROBADO"
+            ].join(",") + "\n";
+            const csv = header + line;
+
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "resultados_local.csv";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        };
+    } catch (e) { /* noop */ }
+
 }
 
 function generateRecommendations(results) {
@@ -556,7 +624,7 @@ function downloadCertificate() {
                         font-weight: bold; 
                         margin: 30px 0; 
                         color: black; 
-                        text-decoration: underline;
+                        text-decoration: none;
                         letter-spacing: 2px;
                     }
                     .text { 
@@ -686,3 +754,49 @@ function getRandomQuestions(num) {
     // Retornar el número solicitado de preguntas
     return shuffled.slice(0, Math.min(num, shuffled.length));
 }
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const studentIdInput = document.getElementById("studentId");
+    if (studentIdInput) {
+        studentIdInput.addEventListener("input", function(e) {
+            let value = e.target.value.replace(/\D/g, "");
+            if (value.length > 2) value = value.slice(0, 2) + "." + value.slice(2);
+            if (value.length > 6) value = value.slice(0, 6) + "." + value.slice(6, 9);
+            e.target.value = value;
+        });
+    }
+});
+
+
+
+// === Deadline & Countdown ===
+(function(){
+  // Fecha límite: 22/08/2025 00:00 (hora de Argentina, -03:00)
+  const deadline = new Date('2025-08-22T00:00:00-03:00');
+  const dd = document.getElementById('deadlineDate');
+  if (dd) {
+    const d = new Intl.DateTimeFormat('es-AR', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Argentina/Buenos_Aires' }).format(deadline);
+    dd.textContent = d.replace(',', '');
+  }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    const now = new Date();
+    let diff = deadline - now;
+    if (diff < 0) diff = 0;
+    const mins = Math.floor(diff/60000);
+    const days = Math.floor(mins / (60*24));
+    const hours = Math.floor((mins - days*24*60)/60);
+    const minutes = mins % 60;
+    const elD = document.getElementById('cdDays');
+    const elH = document.getElementById('cdHours');
+    const elM = document.getElementById('cdMinutes');
+    if (elD && elH && elM){
+        elD.textContent = pad(days);
+        elH.textContent = pad(hours);
+        elM.textContent = pad(minutes);
+    }
+  }
+  tick();
+  setInterval(tick, 30000); // cada 30s suficiente (solo días/horas/minutos)
+})();
