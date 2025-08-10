@@ -7,6 +7,7 @@ let timerInterval = null;
 const timeLimit = 45 * 60; // 45 minutos en segundos
 let timeRemaining = timeLimit;
 
+
 // Elementos del DOM
 const welcomeSection = document.getElementById("welcomeSection");
 const examSection = document.getElementById("examSection");
