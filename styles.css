@@ -709,77 +709,93 @@ body::after {
 }
 
 
-/* === Deadline Banner === */
-.deadline-banner{
-  width:100%;
-  max-width: 1000px;
-  margin: 0 auto 10px auto;
-  padding: 16px 20px;
+
+
+
+/* === Retro Digital Deadline Banner === */
+.retro-banner{
+  max-width: 1100px;
+  margin: 0 auto 18px auto;
+  padding: 14px 18px;
   border-radius: 14px;
-  background: radial-gradient(120% 120% at 0% 0%, rgba(0,255,170,0.08), transparent 60%),
-              radial-gradient(120% 120% at 100% 0%, rgba(40,140,255,0.08), transparent 60%),
-              rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(10,18,22,0.8), rgba(10,18,22,0.55));
+  border: 1px solid rgba(255,200,120,0.18);
+  box-shadow: 0 6px 22px rgba(255,161,61,0.12), inset 0 0 24px rgba(255,180,90,0.08);
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap: 16px;
+  gap: 12px;
 }
-.deadline-text{
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 600;
-  letter-spacing: .3px;
+.retro-left{
+  display:flex;
+  align-items:baseline;
+  gap: 10px;
+  flex-wrap:wrap;
 }
-.deadline-text .twinkle{
-  background: linear-gradient(90deg,#19d1ff,#7cffc4,#ffdb5e,#19d1ff);
-  background-size: 300% 100%;
+.retro-label{
+  background: linear-gradient(90deg,#ffd37a,#ffb351,#ffdb8b);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: hueShift 5s linear infinite, glowPulse 1.8s ease-in-out infinite;
-  text-shadow: 0 0 8px rgba(124,255,196,.25);
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-shadow: 0 0 14px rgba(255,170,70,0.25);
 }
-#deadlineDate{
-  font-weight:700;
-  color:#bfe7ff;
+.retro-date{
+  color: #ffe8bf;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255,190,110,0.25);
 }
-@keyframes hueShift{
-  0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}
-}
-@keyframes glowPulse{
-  0%,100%{text-shadow: 0 0 6px rgba(124,255,196,.15), 0 0 14px rgba(25,209,255,.1);}
-  50%{text-shadow: 0 0 10px rgba(124,255,196,.35), 0 0 22px rgba(25,209,255,.25);}
-}
-.countdown{
+.retro-countdown{
   display:flex;
   align-items:center;
   gap:10px;
 }
-.cd-seg{
-  min-width: 86px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 50% 40%, rgba(255,153,0,.15), rgba(255,153,0,.05));
+.retro-sep{ color:#ffcb7a; font-size:28px; opacity:.8; margin: 0 2px; }
+
+/* Segment style with illuminated ring */
+.retro-seg{
+  min-width: 110px;
+  padding: 10px 16px 12px 16px;
+  border-radius: 14px;
+  position: relative;
+  text-align: center;
+  background: radial-gradient(120% 120% at 50% 40%, rgba(255,160,50,.18), rgba(255,160,50,.06) 60%);
   border: 1px solid rgba(255,170,80,.25);
-  text-align:center;
-  filter: drop-shadow(0 0 10px rgba(255,170,80,.15));
+  box-shadow: 0 0 0 2px rgba(255,170,80,.05) inset, 0 8px 20px rgba(255,150,40,.15);
 }
-.cd-seg span{
+
+.retro-digit{
   display:block;
-  font-family: "Digital-7", ui-monospace, monospace;
-  font-size: 36px;
-  line-height: 1;
+  font-family: ui-monospace, "Courier New", monospace;
+  font-size: 44px;
   letter-spacing: 2px;
+  line-height: 1;
+  color: #dff9ff;
+  /* retro glow */
+  text-shadow:
+    0 0 8px rgba(66, 229, 255, .6),
+    0 0 16px rgba(255, 183, 77, .35),
+    0 0 28px rgba(255, 183, 77, .2);
+  filter: drop-shadow(0 0 18px rgba(255, 170, 80, .18));
 }
-.cd-seg small{
+.retro-seg small{
   display:block;
-  font-size: 11px;
-  opacity:.8;
-  margin-top:4px;
+  margin-top:6px;
+  font-size: 12px;
+  letter-spacing: .8px;
+  color: #ffc980;
+  text-shadow: 0 0 8px rgba(255, 183, 77, .25);
 }
-.cd-sep{font-size:28px; opacity:.6;}
-@media (max-width: 640px){
-  .deadline-banner{flex-direction:column; align-items:flex-start;}
-  .countdown{width:100%; justify-content:space-between;}
-  .cd-seg{min-width:92px; flex:1;}
+
+@media (max-width: 720px){
+  .retro-banner{ flex-direction: column; align-items: flex-start; }
+  .retro-countdown{ width:100%; justify-content: space-between; }
+  .retro-seg{ min-width: 100px; flex: 1; }
 }
+
+
+/* Blink animation for retro separators */
+@keyframes retroBlink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.retro-sep.blink { animation: retroBlink 1s steps(2, jump-none) infinite; }
+.retro-digit { transition: text-shadow .2s ease; }
