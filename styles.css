@@ -171,11 +171,11 @@ body::after {
 
 .subtitle{
   display: block;
-  width: 100%;                 /* ocupa todo el ancho del panel */
+  width: 50%;                 /* ocupa todo el ancho del panel */
   text-align: center;
   color: var(--text-secondary);/* mismo color que ya tenés */
   font-weight: 800;            /* negrita */
-  font-size: clamp(1.6rem, 2.2vw + 0.8rem, 2.8rem); /* más grande y responsive */
+  font-size: clamp(1.2rem, 1.8vw + 0.5rem, 1.2rem); /* más grande y responsive */
   margin: 1rem 0 0.75rem;
   position: relative;
   z-index: 2;
