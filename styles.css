@@ -169,16 +169,13 @@ body::after {
     50% { background-position: 100% 50%; }
 }
 
-.subtitle{
-  display: block;
-  width: 100%;                 /* ocupa todo el ancho del panel */
-  text-align: center;
-  color: var(--text-secondary);/* mismo color que ya tenés */
-  font-weight: 800;            /* negrita */
-  font-size: clamp(1.2rem, 1.8vw + 0.5rem, 1.2rem); /* más grande y responsive */
-  margin: 1rem 0 0.75rem;
-  position: relative;
-  z-index: 2;
+.subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+    position: relative;
+    z-index: 2;
 }
 
 /* Contenedor principal */
@@ -849,3 +846,72 @@ body::after {
 .retro-banner.alert{ border-color: rgba(255, 110, 110, 0.55); box-shadow: 0 0 0 1px rgba(255,110,110,0.25) inset, 0 8px 24px rgba(255,90,90,0.18); }
 .retro-banner.alert .retro-seg{ border-color: rgba(255,110,110,.35); }
 .retro-banner.alert .retro-sep{ color:#ffb0b0; filter: drop-shadow(0 0 8px rgba(255,110,110,.35)); }
+
+/* === Countdown estilo TheGrefg (namespaced) === */
+.countdown-grefg{
+  --size: clamp(110px, 14vw, 180px);
+  --gap: clamp(14px, 2vw, 24px);
+  --ring-bg: rgba(255,255,255,.06);
+  --dot-color: rgba(0, 255, 180, .18);
+  --dot-color-remaining: rgba(0, 255, 200, .45);
+  --dot-color-active: rgba(0, 255, 255, .95);
+  display:grid; grid-auto-flow:column; gap:var(--gap);
+  align-items:center; justify-content:center; width:100%;
+  margin: .25rem 0 1.25rem;
+}
+.countdown-grefg .part{
+  --dots: 60;
+  display:grid; place-items:center; gap:.5rem;
+}
+.countdown-grefg .part .ring{
+  width:var(--size); aspect-ratio:1/1; position:relative;
+  border-radius:50%;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(0,255,255,.08), transparent 70%);
+  box-shadow: 0 0 40px rgba(0,255,200,.08) inset, 0 0 50px rgba(0,255,180,.14);
+}
+.countdown-grefg .part .number{
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-weight:800;
+  font-size: clamp(1.4rem, 5vw, 2.4rem);
+  letter-spacing:.02em;
+  color: #9be9ff; text-shadow: 0 0 8px rgba(0,255,255,.35);
+}
+.countdown-grefg .part .text{
+  text-transform: uppercase;
+  font-weight:700;
+  letter-spacing:.04em;
+  font-size: clamp(.7rem, 1.2vw, .9rem);
+  color: #81f8d7cc;
+  text-align:center;
+}
+.countdown-grefg .part .dots{
+  --size-dot: 8px;
+  position:absolute; inset:4px;
+  display:grid; place-items:center;
+}
+.countdown-grefg .part .dots .dot{
+  position:absolute; width:var(--size-dot); aspect-ratio:1/1;
+  background: var(--dot-color); border-radius:50%;
+  translate: 0 calc( (var(--size)/2 - 8px) * -1 );
+  transform-origin: center calc( var(--size)/2 - 8px );
+  transition: background-color .2s ease;
+}
+.countdown-grefg .part .dot[data-active="true"]{
+  background: var(--dot-color-remaining);
+}
+.countdown-grefg .part .dot[data-lastactive="true"]{
+  background: var(--dot-color-active);
+  box-shadow: 0 0 14px rgba(0,255,255,.8);
+}
+@media (max-width: 900px){
+  .countdown-grefg { --size: clamp(96px, 22vw, 140px); }
+}
+@media (max-width: 640px){
+  .countdown-grefg { grid-auto-flow:row; }
+}
+
+/* === Ocultar el contador anterior (legacy) sin afectar el nuevo === */
+h1.main-title .countdown { display:none !important; }
+#retro { display:none !important; }
+#cdDays, #cdHours, #cdMinutes,
+#retroDays, #retroHours, #retroMinutes, #retroSeconds { display:none !important; }
