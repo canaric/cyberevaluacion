@@ -58,6 +58,14 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function iniciarExamen() {
+    // Autoformato DNI antes de validar
+    (function(){
+      const dniField = document.getElementById("studentId");
+      if (dniField) {
+        dniField.value = formatDniRaw(dniField.value);
+      }
+    })();
+
     // Validar información del usuario
     const rawName = document.getElementById("studentName").value.trim();
     const id = document.getElementById("studentId").value.trim();
@@ -781,4 +789,60 @@ function getRandomQuestions(num) {
   }
   tick();
   setInterval(tick, 1000);
+})();
+
+
+
+// === DNI helpers: format and validation ===
+function formatDniRaw(value){
+  // Keep only digits and limit to 8
+  const digits = (value || '').replace(/\D/g, '').slice(0, 8);
+  const p1 = digits.slice(0, 2);
+  const p2 = digits.slice(2, 5);
+  const p3 = digits.slice(5, 8);
+  let out = p1;
+  if (p2) out += (out ? '.' : '') + p2;
+  if (p3) out += (out ? '.' : '') + p3;
+  return out;
+}
+function attachDniMask(input){
+  if (!input) return;
+  // Normalize on input/paste
+  input.addEventListener('input', (e) => {
+    const caretEnd = e.target.selectionEnd;
+    const before = e.target.value;
+    const formatted = formatDniRaw(before);
+    e.target.value = formatted;
+  });
+  // Normalize on blur (in case user pasted)
+  input.addEventListener('blur', (e) => {
+    e.target.value = formatDniRaw(e.target.value);
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  const dniEl = document.getElementById('studentId') || document.querySelector('input[name="studentId"]');
+  attachDniMask(dniEl);
+});
+
+
+
+// === Hotfix: bind botón + exponer iniciarExamen ===
+(function () {
+  document.addEventListener("DOMContentLoaded", function () {
+    const startBtn = document.getElementById("startExamBtn")
+      || document.querySelector('[data-action="start-exam"]')
+      || document.querySelector('button[onclick*="iniciarExamen"]');
+    if (startBtn) {
+      startBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        try {
+          if (typeof iniciarExamen === "function") iniciarExamen();
+          else alert("No se encontró la función iniciarExamen(). Revisá el script.");
+        } catch (err) {
+          console.error("Error al iniciar evaluación:", err);
+        }
+      });
+    }
+  });
+  try { if (typeof iniciarExamen === "function") window.iniciarExamen = iniciarExamen; } catch(_) {}
 })();
