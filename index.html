@@ -27,16 +27,9 @@
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                 </div>
-                <h1 class="main-title"><div class="countdown">
-        <div class="cd-seg"><span id="cdDays">00</span><small>DÍAS</small></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-seg"><span id="cdHours">00</span><small>HORAS</small></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-seg"><span id="cdMinutes">00</span><small>MIN</small></div>
-    </div>
-</div>
-
-                <p class="subtitle">Seminario "El lado oculto de la Seguridad de la Información"</p>
+                <div class="countdown-grefg" data-target-date="2025-08-22T23:59:00-03:00"></div>
+<h1 class="main-title">CyberEvaluación</h1>
+<p class="subtitle">Seminario "El lado oculto de la Seguridad de la Información"</p>
                 <p class="subtitle">Instituto Universitario de Gendarmería Nacional Argentina</p>
             </div>
 
@@ -93,7 +86,8 @@
                     <label for="studentId" class="form-label">
                         <i class="fas fa-id-card"></i> DNI *
                     </label>
-                    <input type="text" id="studentId" class="form-input" placeholder="DNI (se formatea como 12.345.678)" required>
+                    <input type="text" id="studentId" class="form-input" 
+                           placeholder="Ingrese su DNI sin puntos ni espacios" required>
                 </div>
 
                 <div class="form-group">
@@ -110,7 +104,7 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 2rem;">
-                    <button type="button" id="startExam" class="btn-primary">
+                    <button id="startExam" class="btn-primary">
                         <i class="fas fa-play"></i> Comenzar Evaluación
                     </button>
                     <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
@@ -297,44 +291,7 @@
             typeWriter(title, originalText, 150);
         });
     </script>
-
-<script>
-// === Hotfix: máscara DNI + botón comenzar ===
-(function(){
-  function formatDniRaw(value){
-    const digits = (value || '').replace(/\D/g,'').slice(0,8);
-    const p1 = digits.slice(0,2), p2 = digits.slice(2,5), p3 = digits.slice(5,8);
-    let out = p1; if(p2) out += (out?'.':'') + p2; if(p3) out += (out?'.':'') + p3; return out;
-  }
-  function attachMask(){
-    const dni = document.getElementById('studentId');
-    if(!dni) return;
-    const handler = (e)=>{ e.target.value = formatDniRaw(e.target.value); };
-    dni.addEventListener('input', handler);
-    dni.addEventListener('blur', handler);
-  }
-  function bindStart(){
-    const btn = document.getElementById('startExamBtn');
-    if(!btn) return;
-    btn.setAttribute('type','button');
-    btn.addEventListener('click', function(e){
-      e.preventDefault();
-      const fn = window.iniciarExamen;
-      if (typeof fn === 'function'){
-        const dni = document.getElementById('studentId');
-        if (dni) dni.value = formatDniRaw(dni.value);
-        fn();
-      } else {
-        alert('No se encontró la función iniciarExamen(). Asegúrese de que script.js esté cargado.');
-      }
-    });
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    attachMask();
-    bindStart();
-  });
-})();
-</script>
-
 </body>
 </html>
+
+
