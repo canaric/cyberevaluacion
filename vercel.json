@@ -1,3 +1,16 @@
 {
-  "framework": "none"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "other",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/logResult.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 10,
+      "memory": 128
+    }
+  ]
 }
