@@ -904,3 +904,45 @@ document.addEventListener('DOMContentLoaded', function(){
     update();
   }
 })();
+
+// === HOTFIX: click del botón "Comenzar Evaluación" con fallback sin reCAPTCHA ===
+(function(){
+  function formatDniRaw(value){
+    const digits = (value || '').replace(/\D/g, '').slice(0, 8);
+    const p1 = digits.slice(0,2), p2 = digits.slice(2,5), p3 = digits.slice(5,8);
+    let out = p1; if (p2) out += (out?'.':'') + p2; if (p3) out += (out?'.':'') + p3;
+    return out;
+  }
+  async function tryRecaptcha(){
+    try{
+      const k = (typeof RECAPTCHA_SITE_KEY !== 'undefined' && RECAPTCHA_SITE_KEY) ? RECAPTCHA_SITE_KEY : null;
+      if (window.grecaptcha && typeof grecaptcha.execute === 'function' && k){
+        await new Promise(res => grecaptcha.ready(res));
+        await grecaptcha.execute(k, {action: 'start_exam'});
+      }
+    }catch(e){
+      console.warn('reCAPTCHA falló o no está configurado. Continuamos igual.', e);
+    }
+  }
+  function bindStart(){
+    const btn = document.getElementById('startExam') || document.getElementById('startExamBtn') ||
+                document.querySelector('[data-action="start-exam"]');
+    if (!btn) return;
+    try { btn.setAttribute('type','button'); } catch(_) {}
+    btn.addEventListener('click', async function(ev){
+      try { ev.preventDefault(); } catch(_) {}
+      // Normalizar DNI
+      const dni = document.getElementById('studentId');
+      if (dni) dni.value = formatDniRaw(dni.value);
+      await tryRecaptcha();      // no bloquea el inicio si falla
+      try {
+        if (typeof iniciarExamen === 'function') iniciarExamen();
+        else alert('No se encontró iniciarExamen(). Verifique que script.js esté cargado.');
+      } catch(err){
+        console.error('Error al iniciar examen:', err);
+        alert('Ocurrió un error al iniciar. Revisá la consola.');
+      }
+    }, { once:false });
+  }
+  document.addEventListener('DOMContentLoaded', bindStart);
+})();
