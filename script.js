@@ -42,9 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         // Asegúrate de asociar la función al evento de clic en el botón
         document.getElementById("startExam").addEventListener("click", onClick);
-    
-    startExamBtn.addEventListener("click", iniciarExamen);
-    prevBtn.addEventListener("click", previousQuestion);
+prevBtn.addEventListener("click", previousQuestion);
     nextBtn.addEventListener("click", nextQuestion);
     submitBtn.addEventListener("click", submitExam);
     
@@ -109,10 +107,20 @@ function iniciarExamen() {
     userAnswers.length = 0;
     userAnswers.push(...new Array(currentQuestions.length).fill(null));
 
-    // Mostrar sección de preguntas
-    document.getElementById("formSection").style.display = "none";
-    document.getElementById("questionSection").style.display = "block";
-    showQuestion(0);
+    // Mostrar sección de preguntas correctamente
+welcomeSection.style.display = "none";
+examSection.style.display = "block";
+
+// preparar estado inicial
+currentQuestionIndex = 0;
+displayQuestion();
+updateProgress();
+
+// iniciar timer
+examStartTime = new Date();
+timeRemaining = timeLimit;
+updateTimerDisplay();
+startTimer();
 }
 
 function displayQuestion() {
