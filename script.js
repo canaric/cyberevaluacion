@@ -42,7 +42,9 @@ document.addEventListener("DOMContentLoaded", function() {
         
         // Asegúrate de asociar la función al evento de clic en el botón
         document.getElementById("startExam").addEventListener("click", onClick);
-prevBtn.addEventListener("click", previousQuestion);
+    
+    startExamBtn.addEventListener("click", iniciarExamen);
+    prevBtn.addEventListener("click", previousQuestion);
     nextBtn.addEventListener("click", nextQuestion);
     submitBtn.addEventListener("click", submitExam);
     
@@ -107,20 +109,10 @@ function iniciarExamen() {
     userAnswers.length = 0;
     userAnswers.push(...new Array(currentQuestions.length).fill(null));
 
-    // Mostrar sección de preguntas correctamente
-welcomeSection.style.display = "none";
-examSection.style.display = "block";
-
-// preparar estado inicial
-currentQuestionIndex = 0;
-displayQuestion();
-updateProgress();
-
-// iniciar timer
-examStartTime = new Date();
-timeRemaining = timeLimit;
-updateTimerDisplay();
-startTimer();
+    // Mostrar sección de preguntas
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("questionSection").style.display = "block";
+    showQuestion(0);
 }
 
 function displayQuestion() {
@@ -854,4 +846,61 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   });
   try { if (typeof iniciarExamen === "function") window.iniciarExamen = iniciarExamen; } catch(_) {}
+})();
+
+// === Countdown estilo TheGrefg (anillos) ===
+(function(){ 
+  const $all = document.querySelectorAll('.countdown-grefg');
+  $all.forEach(init);
+
+  function init(container){
+    const target = new Date(container.dataset.targetDate || '2025-08-22T23:59:00-03:00');
+
+    const parts = {
+      days:    { label: ["DÍAS","DÍA"],     dots: 30 },
+      hours:   { label: ["HORAS","HORA"],   dots: 24 },
+      minutes: { label: ["MIN","MIN"],      dots: 60 },
+      seconds: { label: ["SEG","SEG"],      dots: 60 },
+    };
+
+    for (const [key, cfg] of Object.entries(parts)){ 
+      const part = document.createElement('div'); part.className = `part ${key}`;
+      const ring = document.createElement('div'); ring.className = 'ring';
+      const number = document.createElement('div'); number.className = 'number'; number.textContent = '00';
+      const text = document.createElement('div'); text.className = 'text'; text.textContent = cfg.label[0];
+      const dots = document.createElement('div'); dots.className = 'dots';
+      for (let i = 0; i <= cfg.dots; i++){ 
+        const dot = document.createElement('div'); dot.className = 'dot';
+        dot.style.transform = `rotate(${(360 / cfg.dots) * i}deg)`;
+        dots.appendChild(dot);
+      }
+      ring.append(number, dots); part.append(ring, text); container.appendChild(part);
+      cfg.el = { number, text, dots: dots.querySelectorAll('.dot') };
+    }
+
+    function update(){ 
+      const now = new Date();
+      let secs = Math.max(0, Math.floor((target - now) / 1000));
+      let mins = Math.floor(secs / 60);
+      let hours = Math.floor(mins / 60);
+      let days = Math.floor(hours / 24);
+      hours = hours - days * 24;
+      mins  = mins  - (days * 24 * 60) - (hours * 60);
+      secs  = secs  - (days * 24 * 3600) - (hours * 3600) - (mins * 60);
+
+      const data = { days, hours, minutes: mins, seconds: secs };
+      for (const [key, val] of Object.entries(data)){ 
+        const cfg = parts[key]; if (!cfg) continue;
+        const n = String(val).padStart(2,'0');
+        if (cfg.el.number.textContent !== n) cfg.el.number.textContent = n;
+        cfg.el.text.textContent = cfg.label[ Number(val === 1) ];
+        cfg.el.dots.forEach((dot, idx) => { 
+          dot.dataset.active = String(idx <= val);
+          dot.dataset.lastactive = String(idx === val);
+        });
+      }
+      if (now <= target) requestAnimationFrame(update);
+    }
+    update();
+  }
 })();
