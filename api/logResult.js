@@ -1,41 +1,99 @@
+// cyberevaluacion/api/logResult.js
+export default async function handler(req, res) {
+  // CORS básico
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-module.exports = async (req, res) => {
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
-    return;
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
+
   try {
-    const { name, dni, score, status, date } = req.body || {};
-    if (!name || !dni || typeof score === "undefined" || !status) {
-      res.status(400).json({ error: "Missing fields" });
-      return;
+    const {
+      GH_TOKEN,
+      GH_REPO_OWNER,
+      GH_REPO_NAME,
+      RESULTS_PATH = 'cyberevaluacion/data/resultados.csv',
+    } = process.env;
+
+    if (!GH_TOKEN || !GH_REPO_OWNER || !GH_REPO_NAME) {
+      return res.status(500).json({ ok: false, error: 'Missing GitHub env vars' });
     }
-    const owner = process.env.GH_REPO_OWNER;
-    const repo = process.env.GH_REPO_NAME;
-    const path = process.env.RESULTS_PATH || "data/resultados.csv";
-    const token = process.env.GH_TOKEN;
-    if (!owner || !repo || !token) {
-      res.status(500).json({ error: "Missing environment variables" });
-      return;
+
+    // 1) Datos recibidos
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const nombre = (body.nombre || body.name || '').toString().trim();
+    const dni    = (body.dni || body.document || '').toString().trim();
+    const nota   = (body.nota || body.score || body.porcentaje || '').toString().trim();
+    const estado = (body.estado || body.status || '').toString().trim();
+
+    const fechaIso = new Date().toISOString();
+    const header   = 'fecha_iso,nombre_apellido,dni,nota_porcentaje,estado';
+    const row      = `${fechaIso},${csvSafe(nombre)},${csvSafe(dni)},${csvSafe(nota)},${csvSafe(estado)}`;
+
+    // 2) Leer si ya existe (para obtener contenido y SHA)
+    const baseUrl = `https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents/${RESULTS_PATH}`;
+    const headersJson = {
+      Authorization: `Bearer ${GH_TOKEN}`,
+      'User-Agent': 'cyberevaluacion-bot',
+      Accept: 'application/vnd.github+json',
+    };
+
+    let sha = null;
+    let content = null;
+
+    let get = await fetch(`${baseUrl}?ref=main`, { headers: headersJson });
+    if (get.status === 200) {
+      const json = await get.json();
+      sha = json.sha || null;
+      if (json.content && json.encoding === 'base64') {
+        content = Buffer.from(json.content, 'base64').toString('utf8');
+      } else {
+        // fallback si no viene inline
+        const raw = await fetch(json.download_url, { headers: { 'User-Agent': 'cyberevaluacion-bot' }});
+        content = await raw.text();
+      }
+    } else if (get.status === 404) {
+      // no existe aún → lo creamos con encabezado
+      content = header + '\n';
+    } else {
+      const errTxt = await get.text();
+      return res.status(get.status).json({ ok: false, error: `GET contents failed: ${errTxt}` });
     }
-    const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
-    let existing = null; let sha = null; let csv = "";
-    const getResp = await fetch(apiBase, {
-      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json","User-Agent": "cyberevaluacion-logger" }
+
+    // 3) Armar nuevo contenido y subir
+    if (!content.startsWith(header)) content = header + '\n' + content.replace(/^\s+/, '');
+    if (!content.endsWith('\n')) content += '\n';
+    content += row + '\n';
+
+    const putBody = {
+      message: `Log examen ${nombre || dni} - ${fechaIso}`,
+      content: Buffer.from(content, 'utf8').toString('base64'),
+      branch: 'main',
+      ...(sha ? { sha } : {}), // sha solo si actualizamos
+    };
+
+    const put = await fetch(baseUrl, {
+      method: 'PUT',
+      headers: { ...headersJson, 'Content-Type': 'application/json' },
+      body: JSON.stringify(putBody),
     });
-    if (getResp.ok) {
-      existing = await getResp.json(); sha = existing.sha;
-      const content = Buffer.from(existing.content, "base64").toString("utf8"); csv = content;
-    } else if (getResp.status === 404) { csv = "fecha_iso,nombre_apellido,dni,nota_porcentaje,estado\\n"; }
-    else { const errTxt = await getResp.text(); res.status(502).json({ error: "GitHub GET failed", detail: errTxt }); return; }
-    const safeName = ("" + name).replace(/\\r?\\n/g, " ").trim();
-    const line = `${date || new Date().toISOString()},${safeName},${dni},${score},${status}\\n`; csv += line;
-    const putBody = { message: `log: ${safeName} ${dni} ${status} ${score}%`, content: Buffer.from(csv, "utf8").toString("base64"), committer: { name: "cyberevaluacion-bot", email: "noreply@example.com" } };
-    if (sha) putBody.sha = sha;
-    const putResp = await fetch(apiBase, { method: "PUT", headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github+json", "User-Agent": "cyberevaluacion-logger" }, body: JSON.stringify(putBody) });
-    if (!putResp.ok) { const errTxt = await putResp.text(); res.status(502).json({ error: "GitHub PUT failed", detail: errTxt }); return; }
-    res.status(200).json({ ok: true });
+
+    if (!put.ok) {
+      const txt = await put.text();
+      return res.status(put.status).json({ ok: false, error: `PUT contents failed: ${txt}` });
+    }
+
+    return res.status(200).json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: "Unexpected error", detail: String(err) });
+    return res.status(500).json({ ok: false, error: err.message });
   }
-};
+}
+
+// Escapar comillas/comas para CSV sencillo
+function csvSafe(s) {
+  const t = String(s ?? '').replace(/"/g, '""');
+  return /[",\n]/.test(t) ? `"${t}"` : t;
+}
