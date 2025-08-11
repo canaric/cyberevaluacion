@@ -169,14 +169,17 @@ body::after {
     50% { background-position: 100% 50%; }
 }
 
-.subtitle {
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: calc(1.015 * clamp(1.6rem, 2.2vw + 0.8rem, 2.8rem));
-    margin-top: 0.5rem;
-    position: relative;
-    z-index: 2;
+/* Subtítulo al 50% del tamaño anterior (+1.5% aplicado) */
+.subtitle{
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: calc(0.5 * 1.015 * clamp(1.6rem, 2.2vw + 0.8rem, 2.8rem));
+  line-height: 1.25;
+  margin-top: 0.5rem;
+  position: relative;
+  z-index: 2;
 }
+
 
 /* Contenedor principal */
 .container {
